@@ -1,0 +1,74 @@
+[project]
+name = "django-pg-ultrasearch"
+version = "0.1.0"
+description = "PostgreSQL-first search primitives for reusable Django apps."
+readme = "README.md"
+authors = [
+    { name = "Micah Lyle", email = "10660805+MicahLyle@users.noreply.github.com" },
+]
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
+requires-python = ">=3.12"
+dependencies = [
+    "Django>=5.2",
+]
+keywords = [
+    "django",
+    "postgresql",
+    "search",
+    "full-text-search",
+    "trigram",
+]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Environment :: Web Environment",
+    "Framework :: Django",
+    "Framework :: Django :: 5.2",
+    "Framework :: Django :: 6.0",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.urls]
+Homepage = "https://github.com/elyon-tech/django-pg-ultrasearch"
+Repository = "https://github.com/elyon-tech/django-pg-ultrasearch"
+Issues = "https://github.com/elyon-tech/django-pg-ultrasearch/issues"
+
+[build-system]
+requires = ["uv_build>=0.11.3,<0.12.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+    "pytest-django>=4.12.0",
+    "ruff>=0.15.9",
+]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "tests.settings"
+addopts = ["--strict-config", "--strict-markers"]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["B", "E", "F", "I", "UP"]
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.uv.build-backend]
+source-include = ["tests/**"]

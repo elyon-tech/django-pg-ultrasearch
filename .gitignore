@@ -1,0 +1,23 @@
+# Python bytecode and caches
+__pycache__/
+*.py[oc]
+
+# Build artifacts
+build/
+dist/
+wheels/
+*.egg-info/
+
+# Virtual environments
+.venv/
+
+# Test, lint, and type-checker caches
+.coverage
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Editor and OS noise
+.DS_Store
+.idea/
+.vscode/
