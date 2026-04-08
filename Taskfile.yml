@@ -1,0 +1,83 @@
+version: "3"
+
+tasks:
+  default:
+    desc: List available tasks.
+    cmds:
+      - task --list
+    silent: true
+
+  install:
+    desc: Sync the uv environment with development dependencies.
+    cmds:
+      - uv sync --group dev
+
+  lock:
+    desc: Refresh the uv lockfile.
+    cmds:
+      - uv lock
+
+  format:
+    desc: Format the repository with Ruff.
+    cmds:
+      - uv run ruff format .
+
+  format:check:
+    desc: Check formatting with Ruff.
+    cmds:
+      - uv run ruff format --check .
+
+  lint:
+    desc: Lint the repository with Ruff.
+    cmds:
+      - uv run ruff check .
+
+  test:
+    desc: Run the default pytest suite.
+    cmds:
+      - uv run pytest
+
+  test:postgres:
+    desc: Run pytest against PostgreSQL using PG* environment variables.
+    env:
+      DJANGO_DB_BACKEND: postgresql
+      PGHOST: '{{default "127.0.0.1" .PGHOST}}'
+      PGPORT: '{{default "5432" .PGPORT}}'
+      PGDATABASE: '{{default "django_pg_ultrasearch" .PGDATABASE}}'
+      PGUSER: '{{default "postgres" .PGUSER}}'
+      PGPASSWORD: '{{default "postgres" .PGPASSWORD}}'
+    cmds:
+      - uv run pytest
+
+  build:
+    desc: Build the source distribution and wheel.
+    cmds:
+      - uv build
+
+  check:
+    desc: Run local verification.
+    deps:
+      - lint
+      - format:check
+      - test
+      - build
+
+  dotagents:install:
+    desc: Install all dotagents skills from agents.toml.
+    cmds:
+      - npx @sentry/dotagents install
+
+  dotagents:list:
+    desc: List installed dotagents skills.
+    cmds:
+      - npx @sentry/dotagents list
+
+  dotagents:sync:
+    desc: Reconcile dotagents state and generated config.
+    cmds:
+      - npx @sentry/dotagents sync
+
+  dotagents:doctor:
+    desc: Check and repair dotagents project health.
+    cmds:
+      - npx @sentry/dotagents doctor --fix

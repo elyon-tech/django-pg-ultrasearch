@@ -1,0 +1,28 @@
+version = 1
+agents = ["codex"]
+
+[project]
+name = "django-pg-ultrasearch"
+
+[trust]
+github_orgs = ["getsentry"]
+
+[[skills]]
+name = "dotagents"
+source = "getsentry/dotagents"
+
+[[skills]]
+name = "find-bugs"
+source = "getsentry/skills"
+
+[[skills]]
+name = "code-review"
+source = "getsentry/skills"
+
+[[skills]]
+name = "commit"
+source = "getsentry/skills"
+
+[[skills]]
+name = "django-perf-review"
+source = "getsentry/skills"

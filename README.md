@@ -1,60 +1,107 @@
 # django-pg-ultrasearch
 
-`django-pg-ultrasearch` is a reusable Django app scaffold for PostgreSQL-first search features.
+`django-pg-ultrasearch` is a reusable Django package scaffold for PostgreSQL-first search features.
 
-The repository is set up as a modern third-party Django package with:
+The repository is intentionally set up with current tooling for a third-party Django extension:
 
-- `uv` project management and locking
+- `uv` for dependency management, locking, and packaging
 - `uv_build` as the build backend
-- a `src/` layout for distribution-safe imports
+- a `src/` layout for safe package imports
 - `pytest` and `pytest-django` for tests
 - `ruff` for linting and formatting
+- `go-task` via `Taskfile.yml`
+- `dotagents` for shared coding-agent skills
+
+## Support Targets
+
+- Python `>=3.13`
+- Django `>=5.2`
+- PostgreSQL `>=17`
+
+The local smoke tests fall back to SQLite when no PostgreSQL connection is configured, but CI is wired to run the test matrix against PostgreSQL 17.
+
+## Current Status
+
+This is an initial package scaffold, not a finished search implementation yet. The repository currently provides:
+
+- package metadata and build configuration
+- a Django app config scaffold
+- a minimal test suite
 - GitHub Actions CI
-
-## Supported Versions
-
-- Python 3.12, 3.13, and 3.14
-- Django 5.2 and 6.0
-
-## Installation
-
-```bash
-uv add django-pg-ultrasearch
-```
-
-Or with `pip`:
-
-```bash
-python -m pip install django-pg-ultrasearch
-```
-
-## Quick Start
-
-Add the app to `INSTALLED_APPS`:
-
-```python
-INSTALLED_APPS = [
-    ...,
-    "django_pg_ultrasearch",
-]
-```
+- task automation
+- dotagents configuration for Codex-oriented agent workflows
 
 ## Development
 
+Install dependencies with `uv`:
+
 ```bash
 uv sync --group dev
-uv run pytest
-uv run ruff check .
-uv run ruff format --check .
-uv build
 ```
 
-## Packaging Notes
+If you use `go-task`, the common workflows are wrapped in the Taskfile:
 
-The package follows Django's reusable-app guidance:
+```bash
+task install
+task check
+task build
+```
 
-- the distribution name uses the `django-` prefix
-- the import package uses the `django_` prefix
-- the Django app label stays short as `pg_ultrasearch`
+### Local PostgreSQL
 
-When you add templates, static assets, migrations, or management commands, keep them inside `src/django_pg_ultrasearch/` so `uv_build` includes them in wheels and source distributions.
+To run tests against PostgreSQL, export the usual `PG*` environment variables and use:
+
+```bash
+task test:postgres
+```
+
+Example:
+
+```bash
+export PGHOST=127.0.0.1
+export PGPORT=5432
+export PGDATABASE=django_pg_ultrasearch
+export PGUSER=postgres
+export PGPASSWORD=postgres
+task test:postgres
+```
+
+## dotagents
+
+The repository uses `dotagents` with `agents.toml` as the source of truth.
+
+Current setup:
+
+- agent target: `codex`
+- trusted source org: `getsentry`
+- installed skills:
+  - `dotagents`
+  - `find-bugs`
+  - `code-review`
+  - `commit`
+  - `django-perf-review`
+
+Useful commands:
+
+```bash
+task dotagents:install
+task dotagents:sync
+task dotagents:doctor
+task dotagents:list
+```
+
+Or directly:
+
+```bash
+npx @sentry/dotagents install
+```
+
+## Package Notes
+
+The package follows Django reusable-app conventions:
+
+- distribution name: `django-pg-ultrasearch`
+- import package: `django_pg_ultrasearch`
+- Django app label: `pg_ultrasearch`
+
+Keep templates, static files, migrations, and management commands under `src/django_pg_ultrasearch/` so `uv_build` includes them in wheels and source distributions.
