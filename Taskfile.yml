@@ -37,6 +37,11 @@ tasks:
     cmds:
       - uv run pytest
 
+  test:cov:
+    desc: Run pytest with coverage output.
+    cmds:
+      - uv run pytest --cov=django_pg_ultrasearch --cov-report=term-missing
+
   test:postgres:
     desc: Run pytest against PostgreSQL using PG* environment variables.
     env:
