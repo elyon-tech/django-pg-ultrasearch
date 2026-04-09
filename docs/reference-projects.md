@@ -1,5 +1,10 @@
 # Django Package Reference Notes
 
+Migration note: this document predates the repository's Desire/Spec/Plan/Implementation
+workflow. When it is materially updated next, migrate the active planning portions into
+`docs/dsi/` or `docs/agent-notes/` instead of extending this file as an ad hoc
+workstream note.
+
 As of 2026-04-08, these are the reference repositories and patterns reviewed while shaping this project's structure and tooling.
 
 ## User-Requested Repos
