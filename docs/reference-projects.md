@@ -190,6 +190,42 @@ This project intentionally avoids, unless future requirements force them:
 - separate `requirements*.txt` files
 - older CI systems like CircleCI for core validation
 
+## Implementation Learnings From This Repository
+
+These are concrete things learned while actually setting up `django-pg-ultrasearch`, not just from reading other projects.
+
+### `prek`
+
+- Native `prek.toml` works well and keeps the repo free of a `.pre-commit-config.yaml`.
+- `prek` can consume the broader pre-commit hook ecosystem, so switching to `prek` does not require giving up the existing hook universe.
+- `prek validate-config` expects the config path as a positional argument.
+- A first full `prek run --all-files` is useful because it reveals the real formatting policy that tools like `pyproject-fmt` will enforce, instead of leaving that implicit.
+- Installing local Git shims with `prek install --prepare-hooks` is worth doing immediately so `pre-commit` and `pre-push` stay aligned with CI.
+
+### `pyproject.toml`
+
+- `pyproject-fmt` rewrites the file structure more aggressively than Ruff does; once adopted, it should be treated as authoritative formatting policy.
+- A modern Django package can keep almost all packaging, test, lint, and support metadata in `pyproject.toml` without needing `setup.py`, `setup.cfg`, or `tox.ini`.
+- Keeping support policy in classifiers remains valuable because some projects derive CI matrices from those declarations.
+
+### `uv`
+
+- `uv` is fully sufficient for a modern Django library workflow here: init, sync, lock, run, and build all work cleanly.
+- `uv_build` fits the goal of a minimal top-level layout well.
+- Adding `prek` as a dev dependency keeps hook execution consistent between local runs and CI.
+
+### CI
+
+- For a PostgreSQL-focused library, using a real PostgreSQL service in GitHub Actions is the right default.
+- Even a tiny test suite benefits from being exercised against PostgreSQL directly, because it verifies the package wiring and dependency surface under the intended database backend.
+- Separating hook checks from lint/test jobs keeps failures easier to diagnose.
+
+### Project Operations
+
+- `Taskfile.yml` is useful as the human-facing command surface even when the underlying tools are `uv`, `prek`, and `dotagents`.
+- The Taskfile can be committed even if `task` is not installed in the current environment; what matters is that the underlying commands are verified.
+- `dotagents` works well as committed project configuration when the trust boundary is kept explicit and the installed skill set stays curated instead of wildcard-based.
+
 ## Bottom Line
 
 The strongest direct inspirations for this repository are:
