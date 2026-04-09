@@ -12,11 +12,12 @@ The article describes the path from an earlier preview to a production-ready rel
 
 - disk-based segments replacing the earlier memory-only design
 - Block-Max WAND plus WAND optimization for top-k search
-- posting-list compression
+- posting-list compression with SIMD-accelerated decoding
 - smaller indexes
 - parallel index builds
 - strong benchmark results on short queries
 - materially better concurrent throughput in their published tests
+- 180+ commits between the October 2025 preview and the March 2026 general-availability release
 
 ## Architectural Details Worth Knowing
 
@@ -26,6 +27,10 @@ The article describes the path from an earlier preview to a production-ready rel
 - It participates in WAL.
 - It works with `pg_dump`.
 - It works with streaming replication.
+- It uses normal PostgreSQL rollback and MVCC machinery.
+- It supports `VACUUM` dead-entry removal.
+- It is compatible with `pg_upgrade`.
+- Logical replication works by replicating row changes and rebuilding the index on the subscriber.
 - It does not require external index files or a separate search daemon.
 
 This is central to the extension's identity.
@@ -54,6 +59,7 @@ Why this matters:
 - Default spill trigger is 32 million posting entries.
 - There is also a transaction-level trigger around 100K unique terms per transaction for large bulk loads.
 - On startup, the memtable is rebuilt from heap state that has not yet spilled.
+- The design relies on PostgreSQL's WAL-protected heap rather than a separate write-ahead structure for the memtable itself.
 
 ### Segment Layout
 
@@ -63,6 +69,19 @@ The article describes segment internals as including:
 - posting blocks of up to 128 documents
 - skip metadata for upper-bound scoring
 - a fieldnorm table using 1-byte quantization similar to Lucene or Tantivy small-float encoding
+- a doc ID to CTID mapping for final heap fetches
+
+### Page-Access Minimization Strategy
+
+The article gives useful low-level detail on how the extension tries to reduce PostgreSQL buffer-manager overhead:
+
+- each segment uses compact 4-byte segment-local doc IDs rather than working directly with 6-byte CTIDs
+- doc IDs are reassigned so doc ID order matches CTID order
+- CTID page numbers and tuple offsets are stored in separate arrays for better cache-line utilization
+- the scoring loop works only on doc IDs, term frequencies, and fieldnorms
+- CTIDs are only resolved for final top-k winners, in a batched pass
+
+This matters because it explains where the project is trying to recover performance despite living inside PostgreSQL's page model.
 
 ### Block-Max WAND And WAND
 
@@ -79,15 +98,21 @@ This should affect how we evaluate the extension. If our future workloads are lo
 - Dataset: MS MARCO
 - Comparison target: ParadeDB v0.21.6
 - Tokenization: English stemming plus stopword removal
+- Query buckets: 100 queries per token-count bucket
+- Weighted averages use the MS MARCO v1 lexeme distribution
 - Query tests are warm-cache
 - The published tests do not represent out-of-memory or cold-cache conditions
+- The article explicitly says ranking equivalence was not exhaustively validated, so ordering differences may still exist at the edges even with the same BM25 defaults
 
 ### Reported MS MARCO v2 Results
 
 - Environment:
   - dedicated EC2 `c6i.4xlarge`
+  - Intel Xeon Platinum 8375C
+  - 8 cores / 16 threads
   - PostgreSQL 17.4
   - 123 GB RAM
+  - NVMe SSD
   - `shared_buffers = 31 GB`
 - Index size:
   - `pg_textsearch`: 17 GB
@@ -100,6 +125,8 @@ This should affect how we evaluate the extension. If our future workloads are lo
   - 2 lexemes: 6.5x faster
   - 3 lexemes: 3.9x faster
   - 4 lexemes: 2.4x faster
+  - 5 lexemes: 1.9x faster
+  - 6 lexemes: 1.4x faster
   - 7+ lexemes: roughly converged
 - Weighted overall p50 advantage on v2:
   - 2.3x
@@ -114,6 +141,7 @@ This should affect how we evaluate the extension. If our future workloads are lo
 - The benchmarks are warm-cache.
 - Tail-latency sample sizes are limited.
 - They did not benchmark write-heavy workloads with concurrent queries.
+- They compared against ParadeDB because it is the closest Postgres-native BM25 alternative, not because it is the only relevant search system in the broader ecosystem.
 
 These admissions make the article more useful than a pure marketing post.
 
@@ -130,6 +158,12 @@ The article clearly lists several current limitations:
 - PL/pgSQL requires explicit index names
 - `shared_preload_libraries` is required
 - no fuzzy matching or typo tolerance
+
+The article also gives concrete workarounds for some of these gaps:
+
+- phrase queries via post-filtering on an over-fetched result set
+- highlighting via `ts_headline()`
+- multi-field indexing via generated columns that concatenate source fields
 
 This is one of the most important sections for us because these are exactly the kinds of limitations a Django package can accidentally hide from users.
 
@@ -150,6 +184,7 @@ This is one of the most important sections for us because these are exactly the 
   - explicit query helpers
   - score ordering
   - operational checks
+- We should model self-hosted deployment as a real setup path, not just managed-cloud use, because the article explicitly calls out prebuilt binaries and `shared_preload_libraries` setup for self-hosted users.
 - We should document phrase-query and typo-tolerance gaps up front.
 - If we eventually offer hybrid search helpers, they should be explicit composition helpers rather than pretending the extension already solves ranking fusion.
 
