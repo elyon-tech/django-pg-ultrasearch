@@ -8,6 +8,8 @@ Use `task` for the standard project workflows defined in `Taskfile.yml`.
 
 Use `dotagents` through `agents.toml` for shared agent skills.
 
+Use `prek.toml` for Git hook automation. Do not add `pre-commit`-specific config unless there is a concrete compatibility reason.
+
 ## Support Policy
 
 - Python `>=3.13`
@@ -20,6 +22,12 @@ For ordinary changes, run:
 
 ```bash
 task check
+```
+
+For hook-visible file quality changes, also run:
+
+```bash
+task prek:run
 ```
 
 When touching database-specific or PostgreSQL-specific behavior, also run:

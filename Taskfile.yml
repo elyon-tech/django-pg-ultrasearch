@@ -59,8 +59,29 @@ tasks:
     deps:
       - lint
       - format:check
+      - prek:validate
       - test
       - build
+
+  prek:install:
+    desc: Install prek Git hooks and prepare hook environments.
+    cmds:
+      - uv run prek install --prepare-hooks --hook-type pre-commit --hook-type pre-push
+
+  prek:run:
+    desc: Run prek hooks across all files.
+    cmds:
+      - uv run prek run --all-files --show-diff-on-failure
+
+  prek:update:
+    desc: Update pinned hook revisions in prek.toml.
+    cmds:
+      - uv run prek auto-update
+
+  prek:validate:
+    desc: Validate the prek configuration.
+    cmds:
+      - uv run prek validate-config prek.toml
 
   dotagents:install:
     desc: Install all dotagents skills from agents.toml.

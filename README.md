@@ -11,6 +11,7 @@ The repository is intentionally set up with current tooling for a third-party Dj
 - `ruff` for linting and formatting
 - `go-task` via `Taskfile.yml`
 - `dotagents` for shared coding-agent skills
+- `prek` for Git hooks and file-quality automation
 
 ## Support Targets
 
@@ -45,6 +46,12 @@ If you use `go-task`, the common workflows are wrapped in the Taskfile:
 task install
 task check
 task build
+```
+
+Set up Git hooks with `prek`:
+
+```bash
+task prek:install
 ```
 
 ### Local PostgreSQL
@@ -95,6 +102,32 @@ Or directly:
 ```bash
 npx @sentry/dotagents install
 ```
+
+## `prek`
+
+The repository uses native `prek` configuration in `prek.toml` rather than `pre-commit`.
+
+Useful commands:
+
+```bash
+task prek:install
+task prek:run
+task prek:update
+task prek:validate
+```
+
+## Reference Repos
+
+The ecosystem notes from studying strong third-party Django packages live in `docs/reference-projects.md`.
+
+That note includes the four repos you called out plus several other mature Django libraries, with observations on:
+
+- repo structure
+- Python and Django support strategy
+- CI and multi-version testing
+- PostgreSQL and multi-database testing patterns
+- packaging and release tooling
+- which patterns this repository is intentionally copying or avoiding
 
 ## Package Notes
 
